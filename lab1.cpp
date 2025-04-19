@@ -2,78 +2,106 @@
 #include <cmath>
 #include <fstream>
 #include<iostream>
-#include<string>
+#include<vector>
+#define N 60
+#define M 60
 
-double uniform()
+std::ostream& operator<<(std::ostream& out, std::vector<std::vector<int>>& A)
 {
-    double x;
-    x = rand() / double (RAND_MAX);
-    return x;
+ for(int i = 0; i <= N-1; i++ ) 
+ {
+   for(int j = 0; j <=M-1; j++)
+   {
+    out<<A[i][j]<<" ";
+   }
+   out<<"\n"; 
+ }  
 
+    return out;    
 }
+
+int conv (std::vector<std::vector<int>>& kernel, std::vector<std::vector<int>>& A, int x, int y)
+{
+    int suma = 0;
+
+    for(int i = -1; i < 2; i++)
+    {
+        for(int j = -1; j <  2; j++)
+        {
+            int row = (x + i +N) % N;
+            int col = (y+j+M) % M;
+            suma += kernel[i+1][j+1] *A[row][col];
+
+        }
+    }
+    return suma;
+}
+
+
 
 int main()
 {
-    int N = 1e7;
-    double p[3] = {0.1, 0.5, 0.9};
-    int k = 2;
-    double X;
-    double U1;
-    srand(time(NULL));
-    
-    
-    for(int j = 0; j<3; j++)
+    std::vector<std::vector<int>> kernel = {
+        {1, 1, 1},
+        {1, 0, 1},
+        {1, 1, 1}
+    };
+
+    std::vector<std::vector<int>> A(N, std::vector<int>(M));
+
+    for(int i = 0; i < N; i++)
     {
-        double sum_X = 0;
-        double sum_X2 = 0;
-
-        std::ofstream file("./pstwo" + std::to_string(j) + ".csv");
-
-        // if(file.is_open())
-        // {
-        //     std::cout<<j<<"aaaaaaaaaaaaa"<<std::endl;
-        // }
-        for(int i =0; i<=N; i++)
+        for(int j = 0; j < M; j++)
         {
-            U1 = uniform();
-            if (i < 10) {
-                std::cout << "U1[" << i << "] = " << U1 << std::endl;
-            }
+            A[i][j] = rand() % 2;
+
+        }
+    }
+
+    
+    std::vector<std::vector<int>> A_new(N, std::vector<int>(M, 0));
+
+    for(int t = 0; t < 2; t++)
+    {
+        for(int i = 0; i < N; i++)
+        {
+            for(int j = 0; j < M; j++)
             {
-                if(U1 <= p[j])
+                int suma = conv(kernel, A, i, j);
+
+                if(A[i][j] == 0)
                 {
-                    X = 1;
+                    if(suma == 4 || suma == 6 || suma == 7 || suma == 8)
+                    {
+                        A_new[i][j] = 1;
+                    }
+                    else
+                    {
+                        A_new[i][j] = 0;
+                    }
                 }
                 else
                 {
-                    X = 0;
-                }
-
-                sum_X +=X;
-                sum_X2 +=X*X;
-
-                if(i == std::pow(10,k))
-                {
-                    double X_mean = sum_X/(double)i;
-                    double X2_mean = sum_X2/(double)i; 
-                    double error_X = std::abs( (X_mean-p[j]) / p[j] );
-                    double var_numeric = (X2_mean - X_mean*X_mean) / (double)i;
-                    double var_teoreric = (p[j] - p[j]*p[j]) / (double)i;
-                    double error_var = std::abs((var_numeric - var_teoreric) / var_teoreric);
-
-                    file<<p[j]<<","<<i<<","<<X_mean<<","<<X2_mean<<","<<error_X<<","<<error_var<<"\n";
-                    k++;
-                    //std::cout<<j<<" ?????"<<std::endl;
-
+                    if(suma == 3 || suma == 5 || suma == 7 || suma == 8 || suma == 6)
+                    {
+                        A_new[i][j] = 1; 
+                    }
+                    else
+                    {
+                        A_new[i][j] = 0; 
+                    }
                 }
             }
         }
-
-        file.close();
-        k = 2;
-        sum_X = 0;
-        sum_X2 = 0;
-        
+        A = A_new;
+        A_new.assign(N, std::vector<int>(M, 0));
+        std::cout<<A<<"\n";
     }
 
+    
+
+    
+
+
+     
 }
